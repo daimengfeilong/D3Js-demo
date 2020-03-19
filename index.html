@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+</head>
+<body>
+<!--<div class="main">-->
+  <!--<p></p>-->
+  <!--<p></p>-->
+  <!--<p></p>-->
+<!--</div>-->
+<svg width="960" height="600"></svg>
+
+<script src="./assets/js/jquery-3.4.0.min.js"></script>
+<script src="./assets/js/d3.v5.min.js"></script>
+<!--<script type="module" src="./assets/js/test2.js"></script>-->
+<script>
+  $(function () {
+//    var main = d3.select(".main");
+//    var p = d3.select(".main").selectAll("p"), dataSet = ['cat', 'dog', 'pig', 'cattle'], dataExit = [3,6];
+//    p.datum("is an animal").text(function (str, i) {
+//      return `第${i+1}个${str}`;
+//    });
+//    p.data(dataSet).text(function (data, i) {
+//      return `第${i+1}个动物是${data}`;
+//    })
+//    var update = p.data(dataSet), enter = update.enter(), exit = update.exit();
+//    update.text(function (d,i) {
+//      return `第${i+1}个动物是${d}`;
+//    });
+//    var pEnter = enter.append('p');
+//    var pEnter = enter.insert('p');
+//    pEnter.text(function (d, i) {
+//      if (i == 3) {
+//        d3.select(this).style('color', 'red');
+//      }
+//      return `第${i+1}个动物是${d}`;
+//    })
+
+//    exit.text(function (d, i) {
+//      exit.remove();
+//    })
+
+//    柱状图
+//    var marge = {top: 60, bottom:60, left: 60, right: 60};  //设置边距
+//    var dataSet = [2.50 , 2.10 , 1.70 , 1.30 , 0.90];  //数据
+//    var scaleLinear = d3.scaleLinear().domain([0, d3.max(dataSet)]).range([0, 300]);   //定义一个线性比例尺
+//    var svg = d3.select("svg");   //得到SVG画布
+//    var g = svg.append('g').attr('transform', `translate(${marge.top}, ${marge.left})`);   //定义一个用来装整个图表的一个分组，并设置他的位置
+//    var rectHeight = 30;   //设置每一个矩形的高度
+//    var color = "orange";   //设置矩形的颜色
+//    g.selectAll('rect').data(dataSet).enter().append('rect')
+//            .attr('x', 20)  //设置起始横坐标
+//            .attr('y', function (d, i) {  //设置左上点的X
+//              return i*rectHeight;
+//            }).attr('width', function (d) { //设置左上点的Y
+//              return scaleLinear(d);
+//            }).attr('height', rectHeight-5)  //设置矩形高度
+//            .attr('fill', color);   //填充颜色
+//
+//    var xScale = d3.scaleLinear().domain([0, d3.max(dataSet)]).range([0, 300]);  //为坐标轴定义一个线性比例尺
+//    var xAxis = d3.axisBottom(xScale).ticks(5);   //定义坐标轴,ticks方法是设置刻度数目
+//    g.append('g').attr('transform', `translate(${20}, ${dataSet.length*rectHeight+10})`).call(xAxis);
+
+    var marge = {top: 60, bottom:60, left: 60, right: 60};  //设置边距
+    var color = "orange";   //设置矩形的颜色
+    var svg = d3.select('svg'), width = svg.attr('width'), height = svg.attr('height');
+    var dataSet = [10,20,30,23,13,40,27,35,20];
+    var g = svg.append('g').attr('transform', `translate(${marge.top}, ${marge.left})`);
+    var xScale = d3.scaleBand().domain(d3.range(dataSet.length)).rangeRound([0, width-marge.left-marge.right]);
+    var xAxis = d3.axisBottom(xScale);
+    var yScale = d3.scaleLinear().domain([0, d3.max(dataSet)]).range([height-marge.top-marge.bottom, 0]);
+    var yAxis = d3.axisLeft(yScale);
+
+    g.append('g').attr('transform', `translate(${0}, ${height-marge.top-marge.bottom})`).call(xAxis);
+    g.append('g').attr('transform', `translate(${0}, ${0})`).call(yAxis);
+
+    var gs = g.selectAll('rect').data(dataSet).enter().append('g');
+    var rectPadding = 20;
+    //绘制矩形
+    gs.append('rect').attr('x', function (d, i) {
+      return xScale(i) + rectPadding/2;
+    }).attr('y', function (d) {
+      var min = yScale.domain()[0];
+      return yScale(min);
+    }).attr('width', function () {
+      return xScale.step() - rectPadding;
+    }).attr('height', function (d) {
+      return 0;
+    }).attr('fill', color)
+    .on('mouseover', function () {
+      var rect = d3.select(this).transition().duration(500).attr('fill', 'yellow');
+    }).on('mouseout', function () {
+      var rect = d3.select(this).transition().duration(500).attr('fill', 'red');
+    }).on('click', function () {
+      console.log(d3.select(this).attr('height'))
+    })
+    .transition()   //添加过渡
+    .duration(500)   //持续时间
+//            .delay(function (d, i) {   //延迟
+//              return i*400;
+//            })
+    .ease(d3.easeLinear)
+    .attr('y', function (d) {   //y回到最终状态
+      return yScale(d);
+    })
+    .attr('height', function (d) {   //height回到最终状态
+      return height-marge.top-marge.bottom-yScale(d);
+    });
+    //绘制文字
+    gs.append('text').attr('x', function (d, i) {
+      return xScale(i);
+    }).attr('y', function (d) {
+      var min = yScale.domain()[0];
+      return yScale(min);
+    }).attr('dx', function () {
+      return (xScale.step() - rectPadding)/2;
+    }).attr('dy', 20).text(function (d) {
+      return d;
+    }).transition().duration(500)
+//    .delay(function (d, i) {
+//      return i*400;
+//    })
+    .ease(d3.easeLinear).attr('y', function (d) {
+      return yScale(d);
+    });
+  });
+</script>
+</body>
+</html>
